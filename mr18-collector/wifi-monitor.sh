@@ -1,33 +1,4 @@
-Logo
-Issues
-Pull Requests
-Milestones
-Explore
-nick.hills
-/
-wireless-monitor
-Code
-Issues
-Pull Requests
-Actions
-Packages
-Projects
-Releases
-Wiki
-Activity
-Settings
-wireless-monitor
-/
-wifi-monitor.sh
-Go to file
-T
-nickhills
-146f77b9d9
-initial
-12 minutes ago
-364 lines
-14 KiB
-Bash
+
 #!/bin/sh
 # wifi-monitor.sh
 # WiFi RF passive monitor: scans 2.4GHz + 5GHz, classifies APs, POSTs to Splunk HEC.
