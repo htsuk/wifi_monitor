@@ -113,6 +113,8 @@ index=wifi_monitor | head 5
 
 You should see `wifi:ap_scan` and `wifi:channel_survey` events within 60–90 seconds.
 
+![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.34.50.png) "Logo Title Text 1")
+
 ### 5. Install the Splunk app
 
 Copy `splunk-app/wifi_monitor/` to `$SPLUNK_HOME/etc/apps/` on your Splunk instance and restart, or install via the Splunk UI (Apps → Manage Apps → Install from file).
