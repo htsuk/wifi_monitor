@@ -1,0 +1,42 @@
+{
+  "_comment": "Copy this file to /etc/wifi-monitor/config.json and edit before starting the service.",
+
+  "my_networks": [
+    {
+      "_comment": "Add one entry per SSID you own. Classification=mine will be applied to any AP advertising these SSIDs.",
+      "ssid": "YOUR_MAIN_SSID",
+      "band": "5GHz"
+    },
+    {
+      "ssid": "YOUR_IOT_SSID",
+      "band": "2.4GHz"
+    },
+    {
+      "ssid": "YOUR_GUEST_SSID",
+      "band": "both"
+    }
+  ],
+
+  "_comment_bssid": "Optional: OUI prefixes (first 3 octets) of your AP hardware for additional classification confidence.",
+  "my_bssid_prefixes": [],
+
+  "_comment_hec": "Full HEC URL including port and path. Self-signed certs are handled with curl -k.",
+  "splunk_hec_url": "http://YOUR_SPLUNK_IP:8088/services/collector/event",
+
+  "_comment_token": "HEC token. Create in Splunk: Settings > Data Inputs > HTTP Event Collector > New Token.",
+  "splunk_hec_token": "YOUR_HEC_TOKEN_HERE",
+
+  "splunk_index": "wifi_monitor",
+
+  "_comment_interval": "Scan interval in seconds. 60 is recommended. Minimum practical value is 30.",
+  "poll_interval_seconds": 60,
+
+  "_comment_location": "Freeform tag added to every event. Useful if you deploy multiple collectors.",
+  "location_tag": "home",
+
+  "_comment_radios": "Interface names for each band. Verify with: iw dev",
+  "radios": {
+    "2_4ghz": "wlan0",
+    "5ghz": "wlan1"
+  }
+}
