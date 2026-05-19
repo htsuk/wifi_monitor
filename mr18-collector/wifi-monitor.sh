@@ -362,8 +362,3 @@ while true; do
 
     sleep "$POLL_INTERVAL"
 done
-Powered by Gitea
-Version: 1.26.1
-Page: 108ms Template: 5ms
-Licenses
-API
