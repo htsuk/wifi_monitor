@@ -27,18 +27,15 @@ wireless-monitor/
 │   ├── wifi-monitor.sh                ← main collection and forwarding script
 │   ├── wifi-monitor.init              ← procd service script (/etc/init.d/)
 │   └── config.example.json            ← configuration template
-├── splunk-app/
+├── splunk-apps/
 │   └── wifi_monitor/
-│       ├── default/
-│       │   └── dashboards/
-│       │       ├── overview.xml
-│       │       ├── channel_detail.xml
-│       │       ├── my_networks.xml
-│       │       └── neighbours.xml
-│       └── appserver/
-│           └── static/
-│               └── visualizations/
-│                   └── wifi_spectrum/ ← custom canvas spectrum viz
+│   │   ├── default/
+│   │       └── dashboards/
+│   │           ├── overview.xml
+│   │           ├── channel_detail.xml
+│   │           ├── my_networks.xml
+│   │           └── neighbours.xml
+│   └── wifi_channel_spectrum/
 └── docs/
     ├── architecture.md
     └── screenshots/
