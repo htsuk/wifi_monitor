@@ -2,7 +2,7 @@
 
 Passive WiFi RF monitoring pipeline running on a repurposed Meraki MR18 access point, forwarding structured telemetry to Splunk for real-time dashboarding and spectrum visualisation.
 
-> **Article:** [Building a £0 WiFi Intelligence Stack with a Rescued Meraki AP and Splunk](https://thesplunkstack.substack.com) — The Splunk Stack
+> **Article:** [Building a WiFi Intelligence Stack with a Rescued Meraki AP and Splunk](https://open.substack.com/pub/thesplunkstack/p/building-a-wifi-intelligence-stack?r=2wn11d&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true) — The Splunk Stack
 
 ---
 
