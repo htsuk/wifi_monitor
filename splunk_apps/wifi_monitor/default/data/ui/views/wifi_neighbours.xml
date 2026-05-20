@@ -1,0 +1,311 @@
+
+<dashboard version="2" theme="dark">
+    <label>WiFi Monitor — Neighbours</label>
+    <description>Detailed neighbour AP inventory: standards, encryption, signal distribution</description>
+    <definition><![CDATA[
+{
+	"dataSources": {
+		"ds_total_neighbours": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats dc(bssid) as count"
+			},
+			"name": "Total neighbour count"
+		},
+		"ds_ax_count": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour standard=AX | stats dc(bssid) as count"
+			},
+			"name": "WiFi 6 (AX) neighbour count"
+		},
+		"ds_avg_signal": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats avg(signal_dbm) as avg_signal | eval avg_signal=round(avg_signal,1)"
+			},
+			"name": "Average neighbour signal"
+		},
+		"ds_hidden_count": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour is_hidden=true | stats dc(bssid) as count"
+			},
+			"name": "Hidden SSID count"
+		},
+		"ds_neighbour_table": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats latest(_time) as last_seen latest(ssid) as SSID latest(band) as Band latest(channel) as Channel latest(channel_width_mhz) as \"Width MHz\" latest(signal_dbm) as \"Signal dBm\" latest(snr_db) as \"SNR dB\" latest(standard) as Standard latest(encryption) as Encryption by bssid | eval last_seen=strftime(last_seen,\"%H:%M:%S\") | rename bssid as BSSID last_seen as \"Last Seen\" | sort -\"Signal dBm\""
+			},
+			"name": "Neighbour AP table"
+		},
+		"ds_standard_pie": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats dc(bssid) as count by standard | rename standard as Standard count as Count"
+			},
+			"name": "Standard distribution"
+		},
+		"ds_encryption_pie": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats dc(bssid) as count by encryption | rename encryption as Encryption count as Count"
+			},
+			"name": "Encryption distribution"
+		},
+		"ds_signal_dist": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | eval signal_bucket=floor(signal_dbm/10)*10 | eval signal_range=signal_bucket.\" to \".(signal_bucket+9).\" dBm\" | stats dc(bssid) as \"AP Count\" by signal_bucket signal_range | sort num(signal_bucket) | fields signal_range \"AP Count\""
+			},
+			"name": "Signal strength distribution"
+		}
+	},
+	"visualizations": {
+		"viz_total_neighbours": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_total_neighbours"
+			},
+			"title": "Unique Neighbour APs",
+			"options": {
+				"majorFontSize": 48,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_ax_count": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_ax_count"
+			},
+			"title": "WiFi 6 (AX) Neighbours",
+			"options": {
+				"majorFontSize": 48,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_avg_signal": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_avg_signal"
+			},
+			"title": "Avg Signal (dBm)",
+			"options": {
+				"majorFontSize": 48,
+				"unit": "dBm",
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_hidden_count": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_hidden_count"
+			},
+			"title": "Hidden SSIDs",
+			"options": {
+				"majorFontSize": 48,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_neighbour_table": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_neighbour_table"
+			},
+			"title": "Neighbour Access Points",
+			"options": {
+				"backgroundColor": "transparent",
+				"tableFormat": {
+					"rowBackgroundColors": "> table | seriesByIndex(0) | pick(tableAltRowBackgroundColorsByBackgroundColor)",
+					"rowColors": "> rowBackgroundColors | maxContrast(tableRowColorMaxContrast)",
+					"headerBackgroundColor": "> backgroundColor | setColorChannel(tableHeaderBackgroundColorConfig)",
+					"headerColor": "> headerBackgroundColor | maxContrast(tableRowColorMaxContrast)",
+					"align": "center",
+					"headerAlign": "center"
+				},
+				"fontSize": "small"
+			}
+		},
+		"viz_standard_pie": {
+			"type": "splunk.pie",
+			"dataSources": {
+				"primary": "ds_standard_pie"
+			},
+			"title": "802.11 Standard Distribution",
+			"options": {
+				"backgroundColor": "transparent",
+				"labelDisplay": "valuesAndPercentage"
+			}
+		},
+		"viz_encryption_pie": {
+			"type": "splunk.pie",
+			"dataSources": {
+				"primary": "ds_encryption_pie"
+			},
+			"title": "Encryption Distribution",
+			"options": {
+				"backgroundColor": "transparent",
+				"labelDisplay": "valuesAndPercentage"
+			}
+		},
+		"viz_signal_dist": {
+			"type": "splunk.bar",
+			"dataSources": {
+				"primary": "ds_signal_dist"
+			},
+			"title": "Signal Strength Distribution",
+			"options": {
+				"xAxisKey": "signal_range",
+				"legendDisplay": "off",
+				"backgroundColor": "transparent",
+				"showRoundedBars": true
+			}
+		}
+	},
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-4h@m,now"
+			},
+			"title": "Time Range"
+		}
+	},
+	"title": "WiFi Monitor — Neighbours",
+	"description": "Detailed neighbour AP inventory: standards, encryption, signal distribution",
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
+				}
+			}
+		}
+	},
+	"layout": {
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "New tab"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"options": {
+					"width": 1440,
+					"height": 1000,
+					"display": "fit-to-width",
+					"backgroundImage": {
+						"sizeType": "contain",
+						"x": 0,
+						"y": 0,
+						"src": "splunk-enterprise-kvstore://6a0cd04644d3e8398b06d345"
+					}
+				},
+				"structure": [
+					{
+						"item": "viz_total_neighbours",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 10,
+							"w": 340,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_ax_count",
+						"type": "block",
+						"position": {
+							"x": 360,
+							"y": 10,
+							"w": 340,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_avg_signal",
+						"type": "block",
+						"position": {
+							"x": 710,
+							"y": 10,
+							"w": 340,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_hidden_count",
+						"type": "block",
+						"position": {
+							"x": 1060,
+							"y": 10,
+							"w": 370,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_neighbour_table",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 120,
+							"w": 1090,
+							"h": 460
+						}
+					},
+					{
+						"item": "viz_standard_pie",
+						"type": "block",
+						"position": {
+							"x": 1090,
+							"y": 120,
+							"w": 340,
+							"h": 220
+						}
+					},
+					{
+						"item": "viz_encryption_pie",
+						"type": "block",
+						"position": {
+							"x": 1090,
+							"y": 360,
+							"w": 340,
+							"h": 220
+						}
+					},
+					{
+						"item": "viz_signal_dist",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 600,
+							"w": 1420,
+							"h": 200
+						}
+					}
+				]
+			}
+		},
+		"globalInputs": [
+			"input_time"
+		]
+	}
+}
+    ]]></definition>
+</dashboard>

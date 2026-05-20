@@ -1,0 +1,15 @@
+[views/wifi_channels]
+version = 10.2.2
+modtime = 1779225389.577362000
+
+[views/wifi_overview]
+version = 10.2.2
+modtime = 1779225418.963486000
+
+[views/wifi_mynetworks]
+version = 10.2.2
+modtime = 1779225760.496869000
+
+[views/wifi_neighbours]
+version = 10.2.2
+modtime = 1779225367.247488000

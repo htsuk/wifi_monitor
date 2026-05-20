@@ -1,0 +1,6 @@
+<nav search_view="search" color="#1B2733">
+  <view name="wifi_overview" default="true"/>
+  <view name="wifi_channels"/>
+  <view name="wifi_mynetworks"/>
+  <view name="wifi_neighbours"/>
+</nav>

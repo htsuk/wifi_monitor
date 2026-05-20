@@ -1,0 +1,286 @@
+
+<dashboard version="2" theme="dark">
+    <label>WiFi Monitor — Overview</label>
+    <description>RF environment summary: channel utilisation, neighbour density, and my network visibility</description>
+    <definition><![CDATA[
+{
+	"dataSources": {
+		"ds_neighbour_count": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats dc(bssid) as count"
+			},
+			"name": "Neighbour AP count"
+		},
+		"ds_mine_count": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=mine | stats dc(bssid) as count"
+			},
+			"name": "My AP count"
+		},
+		"ds_24_avg_util": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"2.4GHz\" | where isnum(utilisation_pct) | stats latest(utilisation_pct) as util by channel | stats avg(util) as avg_utilisation_pct | eval avg_utilisation_pct=round(avg_utilisation_pct,1)"
+			},
+			"name": "Avg 2.4GHz utilisation"
+		},
+		"ds_5_avg_util": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"5GHz\" | where isnum(utilisation_pct) | stats latest(utilisation_pct) as util by channel | stats avg(util) as avg_utilisation_pct | eval avg_utilisation_pct=round(avg_utilisation_pct,1)"
+			},
+			"name": "Avg 5GHz utilisation"
+		},
+		"ds_24_util_bar": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"2.4GHz\" | where isnum(utilisation_pct) | stats latest(utilisation_pct) as \"Utilisation %\" by channel | sort num(channel)"
+			},
+			"name": "2.4GHz channel utilisation"
+		},
+		"ds_5_util_bar": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"5GHz\" | where isnum(utilisation_pct) | stats latest(utilisation_pct) as \"Utilisation %\" by channel | sort num(channel)"
+			},
+			"name": "5GHz channel utilisation"
+		},
+		"ds_neighbour_per_channel": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats dc(bssid) as \"Neighbour APs\" by band channel | eval sort_key=if(band=\"2.4GHz\",0,1).\"_\".printf(\"%03d\",channel) | sort sort_key | eval Channel=band.\" Ch\".channel | fields Channel \"Neighbour APs\""
+			},
+			"name": "Neighbours per channel"
+		}
+	},
+	"visualizations": {
+		"viz_neighbour_count": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_neighbour_count"
+			},
+			"title": "Active Neighbour APs",
+			"options": {
+				"majorFontSize": 48,
+				"unitFontSize": 16,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_mine_count": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_mine_count"
+			},
+			"title": "My APs Visible",
+			"options": {
+				"majorFontSize": 48,
+				"unitFontSize": 16,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_24_avg_util": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_24_avg_util"
+			},
+			"title": "Avg 2.4GHz Utilisation",
+			"options": {
+				"majorFontSize": 48,
+				"unit": "%",
+				"unitFontSize": 16,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_5_avg_util": {
+			"type": "splunk.singlevalue",
+			"dataSources": {
+				"primary": "ds_5_avg_util"
+			},
+			"title": "Avg 5GHz Utilisation",
+			"options": {
+				"majorFontSize": 48,
+				"unit": "%",
+				"unitFontSize": 16,
+				"backgroundColor": "transparent",
+				"sparklineDisplay": "off",
+				"trendDisplay": "off"
+			}
+		},
+		"viz_24_util_bar": {
+			"type": "splunk.bar",
+			"dataSources": {
+				"primary": "ds_24_util_bar"
+			},
+			"title": "2.4GHz Channel Utilisation (latest)",
+			"options": {
+				"xAxisKey": "channel",
+				"legendDisplay": "off",
+				"backgroundColor": "transparent",
+				"yAxisAbbreviation": "auto",
+				"showRoundedBars": true
+			}
+		},
+		"viz_5_util_bar": {
+			"type": "splunk.bar",
+			"dataSources": {
+				"primary": "ds_5_util_bar"
+			},
+			"title": "5GHz Channel Utilisation (latest)",
+			"options": {
+				"xAxisKey": "channel",
+				"legendDisplay": "off",
+				"backgroundColor": "transparent",
+				"yAxisAbbreviation": "auto",
+				"showRoundedBars": true
+			}
+		},
+		"viz_neighbour_per_channel": {
+			"type": "splunk.bar",
+			"dataSources": {
+				"primary": "ds_neighbour_per_channel"
+			},
+			"title": "Neighbour AP Density by Channel",
+			"options": {
+				"xAxisKey": "Channel",
+				"legendDisplay": "off",
+				"backgroundColor": "transparent",
+				"showRoundedBars": true
+			}
+		}
+	},
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-4h@m,now"
+			},
+			"title": "Time Range"
+		}
+	},
+	"title": "WiFi Monitor — Overview",
+	"description": "RF environment summary: channel utilisation, neighbour density, and my network visibility",
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
+				}
+			}
+		}
+	},
+	"layout": {
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "New tab"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"options": {
+					"width": 1440,
+					"height": 1000,
+					"backgroundImage": {
+						"sizeType": "contain",
+						"x": 0,
+						"y": 0,
+						"src": "splunk-enterprise-kvstore://6a0cd10744d3e8398b06d346"
+					},
+					"display": "fit-to-width"
+				},
+				"structure": [
+					{
+						"item": "viz_neighbour_count",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 20,
+							"w": 340,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_mine_count",
+						"type": "block",
+						"position": {
+							"x": 360,
+							"y": 20,
+							"w": 340,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_24_avg_util",
+						"type": "block",
+						"position": {
+							"x": 710,
+							"y": 20,
+							"w": 340,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_5_avg_util",
+						"type": "block",
+						"position": {
+							"x": 1060,
+							"y": 20,
+							"w": 370,
+							"h": 90
+						}
+					},
+					{
+						"item": "viz_24_util_bar",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 130,
+							"w": 700,
+							"h": 260
+						}
+					},
+					{
+						"item": "viz_5_util_bar",
+						"type": "block",
+						"position": {
+							"x": 720,
+							"y": 130,
+							"w": 710,
+							"h": 260
+						}
+					},
+					{
+						"item": "viz_neighbour_per_channel",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 410,
+							"w": 1420,
+							"h": 290
+						}
+					}
+				]
+			}
+		},
+		"globalInputs": [
+			"input_time"
+		]
+	}
+}
+    ]]></definition>
+</dashboard>

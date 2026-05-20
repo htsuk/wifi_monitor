@@ -1,0 +1,289 @@
+
+<dashboard version="2" theme="dark">
+    <label>WiFi Monitor — Channel Detail</label>
+    <description>Channel utilisation trends, RF spectrum occupancy, noise floor and channel width breakdown</description>
+    <definition><![CDATA[
+{
+	"dataSources": {
+		"ds_9ANJdPkM": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan band=\"5GHz\" | stats latest(ssid) as ssid latest(channel_width_mhz) as channel_width_mhz latest(signal_dbm) as signal_dbm latest(classification) as classification by bssid channel | eval signal_dbm=tonumber(signal_dbm), channel_width_mhz=tonumber(channel_width_mhz) | fields ssid channel channel_width_mhz signal_dbm classification bssid",
+				"queryParameters": {
+					"earliest": "-24h",
+					"latest": "now",
+					"sampleRatio": 1
+				}
+			},
+			"name": "nh search"
+		},
+		"ds_24_util_trend": {
+			"name": "2.4GHz utilisation trend",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"2.4GHz\" | where isnum(utilisation_pct) | timechart span=5m avg(utilisation_pct) by channel limit=13"
+			},
+			"type": "ds.search"
+		},
+		"ds_5_util_trend": {
+			"name": "5GHz utilisation trend",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"5GHz\" | where isnum(utilisation_pct) | timechart span=5m avg(utilisation_pct) by channel limit=20"
+			},
+			"type": "ds.search"
+		},
+		"ds_noise_24": {
+			"name": "2.4GHz noise floor per channel",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"2.4GHz\" | stats latest(noise_dbm) as \"Noise dBm\" by channel | sort num(channel)"
+			},
+			"type": "ds.search"
+		},
+		"ds_noise_5": {
+			"name": "5GHz noise floor per channel",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:channel_survey band=\"5GHz\" | stats latest(noise_dbm) as \"Noise dBm\" by channel | sort num(channel)"
+			},
+			"type": "ds.search"
+		},
+		"ds_spectrum_24": {
+			"name": "2.4GHz RF spectrum",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan band=\"2.4GHz\" | stats latest(ssid) as ssid latest(channel_width_mhz) as channel_width_mhz latest(signal_dbm) as signal_dbm latest(classification) as classification by bssid channel | eval signal_dbm=tonumber(signal_dbm), channel_width_mhz=tonumber(channel_width_mhz) | fields ssid channel channel_width_mhz signal_dbm classification bssid"
+			},
+			"type": "ds.search"
+		},
+		"ds_spectrum_5": {
+			"name": "5GHz RF spectrum",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan band=\"5GHz\" | stats latest(ssid) as ssid latest(channel_width_mhz) as channel_width_mhz latest(signal_dbm) as signal_dbm latest(classification) as classification by bssid channel | eval signal_dbm=tonumber(signal_dbm), channel_width_mhz=tonumber(channel_width_mhz) | fields ssid channel channel_width_mhz signal_dbm classification bssid"
+			},
+			"type": "ds.search"
+		},
+		"ds_width_dist": {
+			"name": "Channel width distribution",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan | stats dc(bssid) as \"AP Count\" by channel_width_mhz | eval \"Channel Width\" = channel_width_mhz.\" MHz\" | fields \"Channel Width\" \"AP Count\" | sort num(channel_width_mhz)"
+			},
+			"type": "ds.search"
+		}
+	},
+	"visualizations": {
+		"viz_24_util_trend": {
+			"dataSources": {
+				"primary": "ds_24_util_trend"
+			},
+			"options": {
+				"backgroundColor": "transparent",
+				"legendDisplay": "right",
+				"nullValueDisplay": "connect",
+				"xAxisKey": "_time",
+				"yAxisMax": 100,
+				"yAxisMin": 0
+			},
+			"title": "2.4GHz Channel Utilisation Over Time",
+			"type": "splunk.line"
+		},
+		"viz_5_util_trend": {
+			"dataSources": {
+				"primary": "ds_5_util_trend"
+			},
+			"options": {
+				"backgroundColor": "transparent",
+				"legendDisplay": "right",
+				"nullValueDisplay": "connect",
+				"xAxisKey": "_time",
+				"yAxisMax": 100,
+				"yAxisMin": 0
+			},
+			"title": "5GHz Channel Utilisation Over Time",
+			"type": "splunk.line"
+		},
+		"viz_noise_24": {
+			"dataSources": {
+				"primary": "ds_noise_24"
+			},
+			"options": {
+				"backgroundColor": "transparent",
+				"legendDisplay": "off",
+				"showRoundedBars": true,
+				"xAxisKey": "channel"
+			},
+			"title": "2.4GHz Noise Floor by Channel",
+			"type": "splunk.bar"
+		},
+		"viz_noise_5": {
+			"dataSources": {
+				"primary": "ds_noise_5"
+			},
+			"options": {
+				"backgroundColor": "transparent",
+				"legendDisplay": "off",
+				"showRoundedBars": true,
+				"xAxisKey": "channel"
+			},
+			"title": "5GHz Noise Floor by Channel",
+			"type": "splunk.bar"
+		},
+		"viz_spectrum_24": {
+			"dataSources": {
+				"primary": "ds_spectrum_24"
+			},
+			"options": {
+				"backgroundColor": "transparent"
+			},
+			"title": "2.4GHz RF Spectrum — Channel Occupancy",
+			"type": "wifi_channel_spectrum.wifi_channel_spectrum"
+		},
+		"viz_spectrum_5": {
+			"dataSources": {
+				"primary": "ds_spectrum_5"
+			},
+			"options": {
+				"backgroundColor": "transparent"
+			},
+			"title": "5GHz RF Spectrum — Channel Occupancy",
+			"type": "wifi_channel_spectrum.wifi_channel_spectrum"
+		},
+		"viz_width_dist": {
+			"dataSources": {
+				"primary": "ds_width_dist"
+			},
+			"options": {
+				"backgroundColor": "transparent",
+				"legendDisplay": "off",
+				"showRoundedBars": true,
+				"xAxisKey": "Channel Width"
+			},
+			"title": "Channel Width Distribution",
+			"type": "splunk.bar"
+		}
+	},
+	"applicationProperties": {},
+	"inputs": {
+		"input_time": {
+			"options": {
+				"defaultValue": "-4h@m,now",
+				"token": "global_time"
+			},
+			"title": "Time Range",
+			"type": "input.timerange"
+		}
+	},
+	"layout": {
+		"globalInputs": [
+			"input_time"
+		],
+		"tabs": {
+			"items": [
+				{
+					"label": "New tab",
+					"layoutId": "layout_1"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"options": {
+					"display": "auto-scale",
+					"height": 1000,
+					"width": 1440,
+					"backgroundImage": {
+						"sizeType": "contain",
+						"x": 0,
+						"y": 0,
+						"src": "splunk-enterprise-kvstore://6a0cd01444d3e8398b06d343"
+					}
+				},
+				"structure": [
+					{
+						"item": "viz_24_util_trend",
+						"position": {
+							"h": 270,
+							"w": 720,
+							"x": 10,
+							"y": 10
+						},
+						"type": "block"
+					},
+					{
+						"item": "viz_5_util_trend",
+						"position": {
+							"h": 270,
+							"w": 700,
+							"x": 730,
+							"y": 0
+						},
+						"type": "block"
+					},
+					{
+						"item": "viz_spectrum_24",
+						"position": {
+							"h": 300,
+							"w": 700,
+							"x": 10,
+							"y": 290
+						},
+						"type": "block"
+					},
+					{
+						"item": "viz_spectrum_5",
+						"position": {
+							"h": 300,
+							"w": 710,
+							"x": 720,
+							"y": 290
+						},
+						"type": "block"
+					},
+					{
+						"item": "viz_width_dist",
+						"position": {
+							"h": 200,
+							"w": 340,
+							"x": 10,
+							"y": 600
+						},
+						"type": "block"
+					},
+					{
+						"item": "viz_noise_24",
+						"position": {
+							"h": 200,
+							"w": 520,
+							"x": 360,
+							"y": 600
+						},
+						"type": "block"
+					},
+					{
+						"item": "viz_noise_5",
+						"position": {
+							"h": 200,
+							"w": 540,
+							"x": 890,
+							"y": 600
+						},
+						"type": "block"
+					}
+				],
+				"type": "absolute"
+			}
+		}
+	},
+	"title": "WiFi Monitor — Channel Detail",
+	"description": "Channel utilisation trends, RF spectrum occupancy, noise floor and channel width breakdown",
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
+				}
+			}
+		}
+	}
+}
+    ]]></definition>
+</dashboard>

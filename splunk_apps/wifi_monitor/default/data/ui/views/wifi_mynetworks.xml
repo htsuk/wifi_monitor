@@ -1,0 +1,225 @@
+
+<dashboard version="2" theme="dark">
+    <label>WiFi Monitor — My Networks</label>
+    <description>Signal trends, SNR, and interference pressure on channels used by my networks</description>
+    <definition><![CDATA[
+{
+	"dataSources": {
+		"ds_signal_trend": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=mine | timechart span=5m avg(signal_dbm) by ssid"
+			},
+			"name": "My networks signal trend"
+		},
+		"ds_snr_trend": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=mine | where isnum(snr_db) | timechart span=5m avg(snr_db) by ssid"
+			},
+			"name": "My networks SNR trend"
+		},
+		"ds_mine_current": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=mine | stats latest(ssid) as SSID latest(band) as Band latest(channel) as Channel latest(channel_width_mhz) as \"Width MHz\" latest(signal_dbm) as \"Signal dBm\" latest(snr_db) as \"SNR dB\" latest(standard) as Standard by bssid | rename bssid as BSSID | sort Band Channel"
+			},
+			"name": "My APs current status"
+		},
+		"ds_interference": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan | stats dc(bssid) as total_aps dc(eval(if(classification=\"mine\",bssid,null()))) as mine_aps dc(eval(if(classification=\"neighbour\",bssid,null()))) as neighbour_aps by band channel | where mine_aps > 0 | eval \"Interference %\"=round(neighbour_aps/total_aps*100,1) | eval \"Channel\"=band.\" Ch\".channel | sort -\"Interference %\" | fields Channel band channel mine_aps neighbour_aps total_aps \"Interference %\""
+			},
+			"name": "Interference pressure by channel"
+		},
+		"ds_neighbours_on_my_channels": {
+			"type": "ds.search",
+			"options": {
+				"query": "index=wifi_monitor sourcetype=wifi:ap_scan classification=neighbour | stats dc(bssid) as neighbour_count avg(signal_dbm) as avg_signal_dbm by channel band | join type=inner channel band [search index=wifi_monitor sourcetype=wifi:ap_scan classification=mine | stats count by channel band] | eval avg_signal_dbm=round(avg_signal_dbm,1) | eval \"Channel\"=band.\" Ch\".channel | sort band, num(channel) | fields Channel neighbour_count avg_signal_dbm"
+			},
+			"name": "Neighbours on my channels"
+		}
+	},
+	"visualizations": {
+		"viz_signal_trend": {
+			"type": "splunk.line",
+			"dataSources": {
+				"primary": "ds_signal_trend"
+			},
+			"title": "Signal Strength Over Time (dBm) — My Networks",
+			"options": {
+				"xAxisKey": "_time",
+				"backgroundColor": "transparent",
+				"legendDisplay": "right",
+				"nullValueDisplay": "connect"
+			}
+		},
+		"viz_snr_trend": {
+			"type": "splunk.line",
+			"dataSources": {
+				"primary": "ds_snr_trend"
+			},
+			"title": "SNR Over Time (dB) — My Networks",
+			"options": {
+				"xAxisKey": "_time",
+				"backgroundColor": "transparent",
+				"legendDisplay": "right",
+				"nullValueDisplay": "connect"
+			}
+		},
+		"viz_mine_current": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_mine_current"
+			},
+			"title": "My Access Points — Current Status",
+			"options": {
+				"backgroundColor": "transparent",
+				"fontSize": "small",
+				"tableFormat": {
+					"headerAlign": "center",
+					"align": "center"
+				},
+				"headerVisibility": "fixed",
+				"count": 6
+			}
+		},
+		"viz_interference": {
+			"type": "splunk.bar",
+			"dataSources": {
+				"primary": "ds_interference"
+			},
+			"title": "Interference Pressure by Channel (% of APs are neighbours)",
+			"options": {
+				"xAxisKey": "Channel",
+				"legendDisplay": "off",
+				"backgroundColor": "transparent",
+				"showRoundedBars": true,
+				"yAxisMax": 100
+			}
+		},
+		"viz_neighbours_on_my_channels": {
+			"type": "splunk.table",
+			"dataSources": {
+				"primary": "ds_neighbours_on_my_channels"
+			},
+			"title": "Neighbour APs on My Channels",
+			"options": {
+				"backgroundColor": "transparent",
+				"tableFormat": {
+					"headerAlign": "center",
+					"align": "center"
+				},
+				"fontSize": "small"
+			}
+		}
+	},
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-4h@m,now"
+			},
+			"title": "Time Range"
+		}
+	},
+	"title": "WiFi Monitor — My Networks",
+	"description": "Signal trends, SNR, and interference pressure on channels used by my networks",
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
+				}
+			}
+		}
+	},
+	"layout": {
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "New tab"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"options": {
+					"width": 1440,
+					"height": 1000,
+					"display": "auto-scale",
+					"backgroundImage": {
+						"sizeType": "contain",
+						"x": 0,
+						"y": 0,
+						"src": "splunk-enterprise-kvstore://6a0cd02d44d3e8398b06d344"
+					}
+				},
+				"structure": [
+					{
+						"item": "viz_signal_trend",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 10,
+							"w": 710,
+							"h": 270
+						}
+					},
+					{
+						"item": "viz_snr_trend",
+						"type": "block",
+						"position": {
+							"x": 730,
+							"y": 10,
+							"w": 700,
+							"h": 270
+						}
+					},
+					{
+						"item": "viz_mine_current",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 260,
+							"w": 1420,
+							"h": 270
+						}
+					},
+					{
+						"item": "viz_interference",
+						"type": "block",
+						"position": {
+							"x": 10,
+							"y": 540,
+							"w": 710,
+							"h": 260
+						}
+					},
+					{
+						"item": "viz_neighbours_on_my_channels",
+						"type": "block",
+						"position": {
+							"x": 730,
+							"y": 540,
+							"w": 700,
+							"h": 260
+						}
+					}
+				]
+			}
+		},
+		"globalInputs": [
+			"input_time"
+		]
+	}
+}
+    ]]></definition>
+</dashboard>
