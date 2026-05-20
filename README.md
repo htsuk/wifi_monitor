@@ -111,14 +111,16 @@ index=wifi_monitor | head 5
 You should see `wifi:ap_scan` and `wifi:channel_survey` events within 60–90 seconds.
 
 
-### 5. Install the Splunk app
+### 5. Install the Splunk apps
 
-Copy `splunk-app/wifi_monitor/` to `$SPLUNK_HOME/etc/apps/` on your Splunk instance and restart, or install via the Splunk UI (Apps → Manage Apps → Install from file).
+Copy `splunk-app/wifi_monitor/` to `$SPLUNK_HOME/etc/apps/` on your Splunk instance
+Copy `splunk-app/wifi_channel_spectrum/` to `$SPLUNK_HOME/etc/apps/` on your Splunk instance
+and restart.
 
 
-![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.34.50.png) "Screenshot1")
-![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.35.25.png) "Screenshot2")
-![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.36.08.png) "Screenshot3")
+![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.34.50.png) "Screenshot1"
+![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.35.25.png) "Screenshot2"
+![alt text](https://github.com/htsuk/wifi_monitor/blob/main/docs/screenshots/Screenshot%202026-05-19%20at%2022.36.08.png) "Screenshot3"
 
 
 ---
